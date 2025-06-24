@@ -28,7 +28,10 @@
     .part {
       position: absolute;
       width: 100%;
+      display: none;
+      /* 기본적으로 숨김 */
     }
+
 
     button {
       background-color: azure;
@@ -52,7 +55,6 @@
     #choice {
       font-size: 100px;
     }
-    
   </style>
 </head>
 
@@ -88,36 +90,52 @@
 
     //선택하고 있는 파츠 랜덤으로 빠르게 바뀌는 타이머 함수?
     function startPart(part) {
+      // 먼저 모든 파츠 숨기기
+      parts.forEach(p => {
+        document.getElementById(p).style.display = "none";
+      });
+
+      // 이번에 선택할 파츠만 보이게 하기
+      const imgElement = document.getElementById(part);
+      imgElement.style.display = "block";
+
       intervalId = setInterval(() => {
         const rand = Math.floor(Math.random() * images[part].length);
-        document.getElementById(part).src = images[part][rand];
-      }, 10);
+        imgElement.src = images[part][rand];
+      }, 100);
     }
+
     //멈춰 버튼을 눌렀다면
     function Stop() {
-      const part = parts[Index]; //현재 파츠 이름
+      const part = parts[Index];
 
       if (intervalId) {
-        clearInterval(intervalId); //이미지 변경 멈추기
+        clearInterval(intervalId);
         intervalId = null;
-        Index++; //다음 배열칸으로 이동
+        Index++;
+
+        // 이번 파츠는 계속 보이게 유지
+        document.getElementById(part).style.display = "block";
 
         if (Index < parts.length) {
-          //아직 안 한 얼굴?이 있다면 다음 부위를 시작
-          document.getElementById("choice").innerText = `${getLabel(parts[Index])} 선택 중...`;
-          startPart(parts[Index]);
+          const nextPart = parts[Index];
+          document.getElementById("choice").innerText = `${getLabel(nextPart)} 선택 중...`;
+          startPart(nextPart);
         } else {
-          //모든 부위를 선택하면 text로 캐릭터 완성 문구를 띄우기
           document.getElementById("choice").innerText = "캐릭터 완성!";
           document.getElementById("stopBtn").disabled = true;
+
+          // 모든 파츠 보여주기
+          parts.forEach(p => {
+            document.getElementById(p).style.display = "block";
+          });
         }
-      } 
-      //아직 시작을 안 했다면 시작하기
-      else {
+      } else {
         startPart(part);
         document.getElementById("choice").innerText = `${getLabel(part)} 선택 중...`;
       }
     }
+
     //다시 시작 버튼을 눌렀다면?
     function Restart() {
       if (intervalId) clearInterval(intervalId); //타이머 멈추기
@@ -147,17 +165,17 @@
     }
     //페이지 로드 시 자동 시작하기
     // 페이지 로드시 모든 이미지 미리 로딩
-  window.onload = () => {
-  // 모든 이미지 로드
-    for (const part in images) {
-      images[part].forEach(src => {
-        const img = new Image();
-        img.src = src;
-      });
-    }
+    window.onload = () => {
+      // 모든 이미지 로드
+      for (const part in images) {
+        images[part].forEach(src => {
+          const img = new Image();
+          img.src = src;
+        });
+      }
 
-  startPart(parts[Index]);
-  };
+      startPart(parts[Index]);
+    };
 
   </script>
 </body>
