@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>너의 얼굴은,,,,?</title>
   <style>
     body {
@@ -11,23 +11,23 @@
       flex-direction: column;
       align-items: center;
       background-color: rgb(249, 240, 255);
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
     }
 
     .character {
       position: relative;
-      width: 200px;
+      width: 250px;
       height: 300px;
       margin: 20px 0;
     }
 
     .character img.part {
-      width: 250px;
-      height: 250px;
-    }
-
-    .part {
       position: absolute;
       width: 100%;
+      display: none; /* 기본적으로 안 보이게 */
+      user-select: none;
     }
 
     button {
@@ -37,11 +37,17 @@
       padding: 10px 20px;
       font-size: 16px;
       border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
     }
 
-    #status {
-      font-size: 18px;
-      margin-top: 10px;
+    button:hover:not(:disabled) {
+      background-color: #cde9ff;
+    }
+
+    button:disabled {
+      background-color: #888;
+      cursor: default;
     }
 
     #stopBtn {
@@ -50,30 +56,29 @@
     }
 
     #choice {
-      font-size: 100px;
+      font-size: 24px;
+      margin-top: 10px;
+      min-height: 30px;
     }
-    
   </style>
 </head>
 
 <body>
   <h1>너의 얼굴은,,,,?</h1>
   <div class="character">
-    <img id="face" class="part" src="">
-    <img id="eyes" class="part" src="">
-    <img id="nose" class="part" src="">
-    <img id="mouth" class="part" src="">
-    <img id="hair" class="part" src="">
-    <img id="clothes" class="part" src="">
+    <img id="face" class="part" src="" alt="face" />
+    <img id="eyes" class="part" src="" alt="eyes" />
+    <img id="nose" class="part" src="" alt="nose" />
+    <img id="mouth" class="part" src="" alt="mouth" />
+    <img id="hair" class="part" src="" alt="hair" />
+    <img id="clothes" class="part" src="" alt="clothes" />
   </div>
   <button id="stopBtn" onclick="Stop()">멈춰!</button>
   <button id="Return" onclick="Restart()">다시 시작</button>
-  <div id="choice">눈 선택 중...</div> <!-- 어떤 곳을 파츠를 선택하고 있는지 사용자에게 표시해주기-->
+  <div id="choice">얼굴형 선택 중...</div>
 
   <script>
-    //각 얽굴 구성 요소들의 id배열
     const parts = ["face", "eyes", "nose", "mouth", "hair", "clothes"];
-    //배열로 이미지 파일 목록 저장하기
     const images = {
       face: ["face1.png", "face2.png", "face3.png"],
       eyes: ["eyes1.png", "eyes2.png", "eyes3.png"],
@@ -83,57 +88,96 @@
       clothes: ["clothes1.png", "clothes2.png", "clothes3.png"]
     };
 
-    let Index = 0; //현재 선택중인 부위 인덱스 
-    let intervalId = null; //setInterval을 담기 위한 변수
+    let Index = 0;       // 현재 선택 중인 파츠 인덱스
+    let intervalId = null;
 
-    //선택하고 있는 파츠 랜덤으로 빠르게 바뀌는 타이머 함수?
+    // 선택 중인 파츠 이미지를 빠르게 교체하는 함수
     function startPart(part) {
+      // 이번 파츠만 보이게, 이전 확정 파츠들은 계속 보임, 아직 선택 전 파츠는 숨김
+      parts.forEach((p, i) => {
+        const el = document.getElementById(p);
+        if (i < Index) {
+          // 확정된 파츠는 보임
+          el.style.display = "block";
+        } else if (p === part) {
+          // 현재 선택 중인 파츠만 보임
+          el.style.display = "block";
+        } else {
+          // 아직 선택 안 한 파츠 숨김
+          el.style.display = "none";
+        }
+      });
+
+      const imgElement = document.getElementById(part);
+
+      // 이미지 교체 속도 100ms로 적당히 조절
       intervalId = setInterval(() => {
         const rand = Math.floor(Math.random() * images[part].length);
-        document.getElementById(part).src = `imgs/${images[part][rand]}`;
-      }, 10);
+        const imgSrc = images[part][rand];
+
+        // 미리 로드해서 깨짐 방지
+        const tempImg = new Image();
+        tempImg.onload = () => {
+          imgElement.src = imgSrc;
+        };
+        tempImg.src = imgSrc;
+      }, 100);
     }
-    //멈춰 버튼을 눌렀다면
+
+    // 멈춤 버튼 클릭 함수
     function Stop() {
-      const part = parts[Index]; //현재 파츠 이름
+      const part = parts[Index];
 
       if (intervalId) {
-        clearInterval(intervalId); //이미지 변경 멈추기
+        clearInterval(intervalId);
         intervalId = null;
-        Index++; //다음 배열칸으로 이동
+
+        // 현재 선택된 이미지가 그대로 남게 스타일은 유지
+        document.getElementById(part).style.display = "block";
+
+        Index++;
 
         if (Index < parts.length) {
-          //아직 안 한 얼굴?이 있다면 다음 부위를 시작
-          document.getElementById("choice").innerText = `${getLabel(parts[Index])} 선택 중...`;
-          startPart(parts[Index]);
+          const nextPart = parts[Index];
+          document.getElementById("choice").innerText = `${getLabel(nextPart)} 선택 중...`;
+          startPart(nextPart);
         } else {
-          //모든 부위를 선택하면 text로 캐릭터 완성 문구를 띄우기
+          // 모든 부위 선택 완료
           document.getElementById("choice").innerText = "캐릭터 완성!";
           document.getElementById("stopBtn").disabled = true;
+
+          // 모든 파츠 다 보이게
+          parts.forEach(p => {
+            document.getElementById(p).style.display = "block";
+          });
         }
-      } 
-      //아직 시작을 안 했다면 시작하기
-      else {
-        startPart(part);
-        document.getElementById("choice").innerText = `${getLabel(part)} 선택 중...`;
+      } else {
+        // 멈춘 상태에서 다시 시작 눌렀을 때 현재 파츠 선택 시작
+        startPart(parts[Index]);
+        document.getElementById("choice").innerText = `${getLabel(parts[Index])} 선택 중...`;
       }
     }
-    //다시 시작 버튼을 눌렀다면?
+
+    // 다시 시작 버튼 클릭 함수
     function Restart() {
-      if (intervalId) clearInterval(intervalId); //타이머 멈추기
+      if (intervalId) clearInterval(intervalId);
       intervalId = null;
       Index = 0;
-      //이미지 초기화
-      parts.forEach(part => {
-        document.getElementById(part).src = "";
+
+      // 모든 이미지 초기화 및 숨김
+      parts.forEach(p => {
+        const el = document.getElementById(p);
+        el.src = "";
+        el.style.display = "none";
       });
 
       document.getElementById("choice").innerText = `${getLabel(parts[Index])} 선택 중...`;
-      document.getElementById("stopBtn").disabled = false; //버튼 비활성화
-      startPart(parts[Index]); //처음부터 다시 시작 배열 다시
+      document.getElementById("stopBtn").disabled = false;
+
+      startPart(parts[Index]);
     }
 
-    //각 case 영어를 -> 한국어로 변경
+    // 한국어 라벨 반환 함수
     function getLabel(part) {
       switch (part) {
         case "face": return "얼굴형";
@@ -145,8 +189,15 @@
         default: return "";
       }
     }
-    //페이지 로드 시 자동 시작하기
+
+    // 페이지 로드 시 자동 시작
     window.onload = () => {
+      // 처음에 모든 파츠 숨기고 시작
+      parts.forEach(p => {
+        document.getElementById(p).style.display = "none";
+        document.getElementById(p).src = "";
+      });
+      document.getElementById("choice").innerText = `${getLabel(parts[Index])} 선택 중...`;
       startPart(parts[Index]);
     };
   </script>
