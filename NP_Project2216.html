@@ -90,7 +90,7 @@
     function startPart(part) {
       intervalId = setInterval(() => {
         const rand = Math.floor(Math.random() * images[part].length);
-        document.getElementById(part).src = `imgs/${images[part][rand]}`;
+        document.getElementById(part).src = images[part][rand];
       }, 10);
     }
     //멈춰 버튼을 눌렀다면
