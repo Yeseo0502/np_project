@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>너의 얼굴은,,,,?</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: rgb(249, 240, 255);
+    }
+
+    .character {
+      position: relative;
+      width: 200px;
+      height: 300px;
+      margin: 20px 0;
+    }
+
+    .character img.part {
+      width: 250px;
+      height: 250px;
+    }
+
+    .part {
+      position: absolute;
+      width: 100%;
+    }
+
+    button {
+      background-color: azure;
+      border: none;
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+    }
+
+    #status {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    #stopBtn {
+      background-color: rgb(0, 0, 0);
+      color: white;
+    }
+
+    #choice {
+      font-size: 100px;
+    }
+    
+  </style>
+</head>
+
+<body>
+  <h1>너의 얼굴은,,,,?</h1>
+  <div class="character">
+    <img id="face" class="part" src="">
+    <img id="eyes" class="part" src="">
+    <img id="nose" class="part" src="">
+    <img id="mouth" class="part" src="">
+    <img id="hair" class="part" src="">
+    <img id="clothes" class="part" src="">
+  </div>
+  <button id="stopBtn" onclick="Stop()">멈춰!</button>
+  <button id="Return" onclick="Restart()">다시 시작</button>
+  <div id="choice">눈 선택 중...</div> <!-- 어떤 곳을 파츠를 선택하고 있는지 사용자에게 표시해주기-->
+
+  <script>
+    //각 얽굴 구성 요소들의 id배열
+    const parts = ["face", "eyes", "nose", "mouth", "hair", "clothes"];
+    //배열로 이미지 파일 목록 저장하기
+    const images = {
+      face: ["face1.png", "face2.png", "face3.png"],
+      eyes: ["eyes1.png", "eyes2.png", "eyes3.png"],
+      nose: ["nose1.png", "nose2.png", "nose3.png"],
+      mouth: ["mouth1.png", "mouth2.png", "mouth3.png"],
+      hair: ["hair1.png", "hair2.png", "hair3.png"],
+      clothes: ["clothes1.png", "clothes2.png", "clothes3.png"]
+    };
+
+    let Index = 0; //현재 선택중인 부위 인덱스 
+    let intervalId = null; //setInterval을 담기 위한 변수
+
+    //선택하고 있는 파츠 랜덤으로 빠르게 바뀌는 타이머 함수?
+    function startPart(part) {
+      intervalId = setInterval(() => {
+        const rand = Math.floor(Math.random() * images[part].length);
+        document.getElementById(part).src = `imgs/${images[part][rand]}`;
+      }, 10);
+    }
+    //멈춰 버튼을 눌렀다면
+    function Stop() {
+      const part = parts[Index]; //현재 파츠 이름
+
+      if (intervalId) {
+        clearInterval(intervalId); //이미지 변경 멈추기
+        intervalId = null;
+        Index++; //다음 배열칸으로 이동
+
+        if (Index < parts.length) {
+          //아직 안 한 얼굴?이 있다면 다음 부위를 시작
+          document.getElementById("choice").innerText = `${getLabel(parts[Index])} 선택 중...`;
+          startPart(parts[Index]);
+        } else {
+          //모든 부위를 선택하면 text로 캐릭터 완성 문구를 띄우기
+          document.getElementById("choice").innerText = "캐릭터 완성!";
+          document.getElementById("stopBtn").disabled = true;
+        }
+      } 
+      //아직 시작을 안 했다면 시작하기
+      else {
+        startPart(part);
+        document.getElementById("choice").innerText = `${getLabel(part)} 선택 중...`;
+      }
+    }
+    //다시 시작 버튼을 눌렀다면?
+    function Restart() {
+      if (intervalId) clearInterval(intervalId); //타이머 멈추기
+      intervalId = null;
+      Index = 0;
+      //이미지 초기화
+      parts.forEach(part => {
+        document.getElementById(part).src = "";
+      });
+
+      document.getElementById("choice").innerText = `${getLabel(parts[Index])} 선택 중...`;
+      document.getElementById("stopBtn").disabled = false; //버튼 비활성화
+      startPart(parts[Index]); //처음부터 다시 시작 배열 다시
+    }
+
+    //각 case 영어를 -> 한국어로 변경
+    function getLabel(part) {
+      switch (part) {
+        case "face": return "얼굴형";
+        case "eyes": return "눈";
+        case "nose": return "코";
+        case "mouth": return "입";
+        case "hair": return "머리";
+        case "clothes": return "옷";
+        default: return "";
+      }
+    }
+    //페이지 로드 시 자동 시작하기
+    window.onload = () => {
+      startPart(parts[Index]);
+    };
+  </script>
+</body>
+
+</html>
