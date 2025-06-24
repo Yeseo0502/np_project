@@ -146,9 +146,19 @@
       }
     }
     //페이지 로드 시 자동 시작하기
-    window.onload = () => {
-      startPart(parts[Index]);
-    };
+    // 페이지 로드시 모든 이미지 미리 로딩
+  window.onload = () => {
+  // 모든 이미지 로드
+    for (const part in images) {
+      images[part].forEach(src => {
+        const img = new Image();
+        img.src = src;
+      });
+    }
+
+  startPart(parts[Index]);
+  };
+
   </script>
 </body>
 
